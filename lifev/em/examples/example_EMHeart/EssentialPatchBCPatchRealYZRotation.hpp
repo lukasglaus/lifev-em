@@ -70,7 +70,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 		
 	}
 
-
+	//in this function we check if a point needs to be displaced or not; 
 	virtual const bool nodeOnPatch(const Vector3D& coord, const Real& time)
 		{
 
@@ -79,10 +79,10 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 			Vector3D intermediateResult;
 			Vector3D xVector;
 
-
+			//here we check if the points lies in between the four boundary surfaces S1, ..., S4 as described in report of semester project
 			coordInPatchRange = coordinatesInPatchRange(coord, time);
 	
-		
+			//if the point is inbetween the four boundary surfaces, we also check if it lies outside the ellipsoid
 			if(coordInPatchRange == true)
 			{
 
@@ -100,6 +100,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 				intermediateResult = matrixVectorMultiplicator(m_Ellipsoid, xVector);
 				Real ellipseEquation = xVector.dot(intermediateResult)-1.0;
 				
+				//if it lies outside the ellipsoid, so variable ellipseEquation > 0, then point needs to get displaced and we set nodeOnPatch == true
 				if(ellipseEquation >= 0)
 				{
 						nodeOnPatch = true;
@@ -161,6 +162,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 
 		}
 
+	//in this function we check if the upper and lower 10 % of the patch area is on the defined radius or not
 	const bool nodeOnRadius(const Vector3D& coord, const Real& time)
 	{
 		 bool nodeOnRadius = false;
@@ -179,118 +181,112 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 		 Real yDifference =0;
 		 Real edgeSmoother = 0;
 
-                         a = m_patchDirection[0]*(m_Ellipsoid(0, 0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + m_patchDirection[2]*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2, 2)*m_patchDirection[2]);
+                 a = m_patchDirection[0]*(m_Ellipsoid(0, 0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + m_patchDirection[2]*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2, 2)*m_patchDirection[2]);
+                 b = m_patchDirection[0]*(m_Ellipsoid(0, 0)*(coord[0]-fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2,0)*(coord[2] - fzeroZ)) + m_patchDirection[2]*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1, 2)*(coord[1] - fzeroY) + m_Ellipsoid(2, 2)*(coord[2] - fzeroZ)) + (coord[0] - fzeroX)*(m_Ellipsoid(0,0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + (coord[1] - fzeroY)*(m_Ellipsoid(0,1)*m_patchDirection[0] + m_Ellipsoid(2,1)*m_patchDirection[2]) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2,2)*m_patchDirection[2]);
+                 c = (coord[0] - fzeroX)*(m_Ellipsoid(0, 0)*(coord[0] - fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2, 0)*(coord[2] - fzeroZ)) + (coord[1] - fzeroY)*(m_Ellipsoid(0, 1)*(coord[0] - fzeroX) + m_Ellipsoid(1, 1)*(coord[1] - fzeroY) + m_Ellipsoid(2,1)*(coord[2] - fzeroZ)) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1,2)*(coord[1] - fzeroY) + m_Ellipsoid(2,2)*(coord[2] - fzeroZ)) -1.0;
 
-                         b = m_patchDirection[0]*(m_Ellipsoid(0, 0)*(coord[0]-fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2,0)*(coord[2] - fzeroZ)) + m_patchDirection[2]*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1, 2)*(coord[1] - fzeroY) + m_Ellipsoid(2, 2)*(coord[2] - fzeroZ)) + (coord[0] - fzeroX)*(m_Ellipsoid(0,0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + (coord[1] - fzeroY)*(m_Ellipsoid(0,1)*m_patchDirection[0] + m_Ellipsoid(2,1)*m_patchDirection[2]) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2,2)*m_patchDirection[2]);
+                 lambdaOne = (-b + sqrt(std::pow(b,2) - 4*a*c))/(2*a);
+                 lambdaTwo = (-b - sqrt(std::pow(b,2) - 4*a*c))/(2*a);
 
-                        c = (coord[0] - fzeroX)*(m_Ellipsoid(0, 0)*(coord[0] - fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2, 0)*(coord[2] - fzeroZ)) + (coord[1] - fzeroY)*(m_Ellipsoid(0, 1)*(coord[0] - fzeroX) + m_Ellipsoid(1, 1)*(coord[1] - fzeroY) + m_Ellipsoid(2,1)*(coord[2] - fzeroZ)) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1,2)*(coord[1] - fzeroY) + m_Ellipsoid(2,2)*(coord[2] - fzeroZ)) -1.0;
+                 bool checkRange = false;
+                 checkRange = coord[1] <= 0.9*m_yMin;
+                 if(checkRange == true)
+                 {
+                      yDifference = coord[1] - 0.9*m_yMin;
+                 }
+                 else
+                 {
+                      yDifference = coord[1] - 1.1*m_yMax;
+                 }
 
-                        lambdaOne = (-b + sqrt(std::pow(b,2) - 4*a*c))/(2*a);
-                        lambdaTwo = (-b - sqrt(std::pow(b,2) - 4*a*c))/(2*a);
+                 edgeSmoother = 1*std::pow(yDifference, 2.0);
+		 Real displacement = std::abs(lambdaOne) < std::abs(lambdaTwo) ? std::abs(lambdaOne) : std::abs(lambdaTwo);
+                 displacement = displacement - edgeSmoother;
 
-                        bool checkRange = false;
-                        checkRange = coord[1] <= 0.9*m_yMin;
-                        if(checkRange == true)
-                        {
-                               yDifference = coord[1] - 0.9*m_yMin;
-                        }
-                        else
-                        {
-                               yDifference = coord[1] - 1.1*m_yMax;
-                        }
-
-                        edgeSmoother = 1*std::pow(yDifference, 2.0);
-                 	Real displacement = std::abs(lambdaOne) < std::abs(lambdaTwo) ? std::abs(lambdaOne) : std::abs(lambdaTwo);
-                        displacement = displacement - edgeSmoother;
-
-                        if(displacement > 0.0)
-                        {
-                                nodeOnRadius = true;
-                        }
-                        else
-                        {
-                                nodeOnRadius = false;
-                        }
+                 if(displacement > 0.0)
+                 {
+                     nodeOnRadius = true;
+                 }
+                 else
+                 {
+                       nodeOnRadius = false;
+                 }
 
 
-                        return nodeOnRadius;
-        }
+          return nodeOnRadius;
+   }
 
+//in modifyPatchArea we check for each time step, which points on the heart surface need to get displaced; the points/faces which need to be displaced their faceFlag gets changed
+virtual void modifyPatchArea(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const int& newFlag, const Real& time)
+{	
+	auto p2FeSpace = solver.electroSolverPtr()->feSpacePtr();
+	auto p2dFeSpace = solver.structuralOperatorPtr()->dispFESpacePtr();
+	FESpace<RegionMesh<LinearTetra>, MapEpetra > p1FESpace (p2FeSpace->mesh(), "P1", 1, p2FeSpace->mesh()->comm());
 
-	virtual void modifyPatchArea(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const int& newFlag, const Real& time)
-		{
-			if ( solver.comm()->MyPID() == 0 ) std::cout << "WE ARE IN MODIFY PATCH AREA " << std::endl;
+	
+	VectorEpetra p1ScalarFieldFaces (p1FESpace.map());
+    	p1ScalarFieldFaces *= 0.0;
+    	Int p1ScalarFieldFacesDof = p1ScalarFieldFaces.epetraVector().MyLength();
 
-			auto p2FeSpace = solver.electroSolverPtr()->feSpacePtr();
-			auto p2dFeSpace = solver.structuralOperatorPtr()->dispFESpacePtr();
-			FESpace<RegionMesh<LinearTetra>, MapEpetra > p1FESpace (p2FeSpace->mesh(), "P1", 1, p2FeSpace->mesh()->comm());
+   	int globalIdArray[p1ScalarFieldFacesDof];
+    	p1ScalarFieldFaces.blockMap().MyGlobalElements(globalIdArray);
 
-			//create an epetra vector to set it equal to one where it is part of patch
-			VectorEpetra p1ScalarFieldFaces (p1FESpace.map());
-	    	p1ScalarFieldFaces *= 0.0;
-	    	Int p1ScalarFieldFacesDof = p1ScalarFieldFaces.epetraVector().MyLength();
+        m_patchFlag = newFlag;
+        const auto& mesh = solver.localMeshPtr();
+	const auto& meshfull = solver.fullMeshPtr();
+					            
+	unsigned int numNodesOnPatch(0); 
+	
+	//Here we loop over all boundaryFaces
+        for (int j(0); j < mesh->numBoundaryFacets(); j++) 
+        {
+	      auto& face = mesh->boundaryFacet(j);
+	      auto faceFlag = face.markerID();
 
-	    	int globalIdArray[p1ScalarFieldFacesDof];
-	    	p1ScalarFieldFaces.blockMap().MyGlobalElements(globalIdArray);
+	      int numPointsOnFace(0);
 
-	        m_patchFlag = newFlag;
-	        const auto& mesh = solver.localMeshPtr();
-			const auto& meshfull = solver.fullMeshPtr();
-					            // Create patches by changing the markerID (flag) locally
-			unsigned int numNodesOnPatch(0); //here we just initalise an unsigned integer variable
-	        for (int j(0); j < mesh->numBoundaryFacets(); j++) //returns number of boundary facets
-	        {
-			      auto& face = mesh->boundaryFacet(j);
-			      auto faceFlag = face.markerID();
-			
-		
-			      int numPointsOnFace(0);
+	      for (int k(0); k < 3; ++k) 
+	      {
 
-			      for (int k(0); k < 3; ++k) //k < 3 was before; this is just a test
-			      {
+	    	  ID pointGlobalId = face.point(k).id();
+	          auto coord = face.point(k).coordinates();
+	          auto pointInPatch = nodeOnPatchCurrent(coord, time);
 
-			    	  ID pointGlobalId = face.point(k).id();
-			          auto coord = face.point(k).coordinates();
-			          auto pointInPatch = nodeOnPatchCurrent(coord, time);
+	          if(pointInPatch == true)
+	          {
+	       		++numPointsOnFace;
+	       		for(int n = 0; n < p1ScalarFieldFacesDof; n++)
+	       		{
+	       			if(pointGlobalId == globalIdArray[n])
+	       			{
+					//this is the epetraVector which we write to Paraview file and can be displaced in variable Patch Faces location
+	                  		p1ScalarFieldFaces[pointGlobalId] = 1.0;
 
-			          if(pointInPatch == true)
-			          {
-			          		++numPointsOnFace;
-			           		for(int n = 0; n < p1ScalarFieldFacesDof; n++)
-			          		{
-			           			if(pointGlobalId == globalIdArray[n])
-			           			{
-							//if((coord[0] == 2.5966) && (coord[1] == -4.63969) && (coord[2] == -4.77856))
-							//{
-							//	p1ScalarFieldFaces[pointGlobalId] = 1.0;
-							//}
+           			}
+               	      	}
+	           }
 
-			                  		p1ScalarFieldFaces[pointGlobalId] = 1.0;
-
-			           			}
-			          	      }
-			           }
-
-			        }
-
-
-	        	 if(numPointsOnFace >= 2)
-                  	 {
-			     face.setMarkerID(m_patchFlag);
-			     auto faceFlagChanged = face.markerID();
-			     
-                  	 }
-		
-			
-		}
-				
-				 solver.bcInterfacePtr()->handler()->bcUpdate( *solver.structuralOperatorPtr()->dispFESpacePtr()->mesh(), solver.structuralOperatorPtr()->dispFESpacePtr()->feBd(), solver.structuralOperatorPtr()->dispFESpacePtr()->dof() ); //this is a test if we can change flags over and over
-
-			            m_patchFacesLocationPtr.reset (new vector_Type (p2FeSpace->map() ));
-			            *m_patchFacesLocationPtr = p2FeSpace->feToFEInterpolate(p1FESpace, p1ScalarFieldFaces);
 	}
 
+	//If two or more points of a face need to be displaced we change the flag of the face
+       	 if(numPointsOnFace >= 2)
+      	 {
+		     face.setMarkerID(m_patchFlag);
+		     auto faceFlagChanged = face.markerID();
+			     
+       	 }
+		
+			
+	}
+				
+	 solver.bcInterfacePtr()->handler()->bcUpdate( *solver.structuralOperatorPtr()->dispFESpacePtr()->mesh(), solver.structuralOperatorPtr()->dispFESpacePtr()->feBd(), solver.structuralOperatorPtr()->dispFESpacePtr()->dof() ); //this is a test if we can change flags over and over
 
+         m_patchFacesLocationPtr.reset (new vector_Type (p2FeSpace->map() ));
+         *m_patchFacesLocationPtr = p2FeSpace->feToFEInterpolate(p1FESpace, p1ScalarFieldFaces);
+	 
+}
+
+	//in this function the displacementfield gets calculated as described in semester report
 	virtual vectorPtr_Type directionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
 	{
 								
