@@ -212,8 +212,4 @@ vectorPtr_Type EssentialPatchBCMovingPlane::directionalVectorField(EMSolver<Regi
 
 }
 
-
-
-//REGISTER(EssentialPatchBC, EssentialPatchBCMovingPlane);
-
-}//this is Klammer von LifeV namespace
+}//this is bracket von LifeV namespace
