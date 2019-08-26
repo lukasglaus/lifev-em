@@ -239,12 +239,32 @@ public:
                                      M_emSolver.structuralOperatorPtr()->dispFESpacePtr(),
                                      this->patchDispSumPtr(),
                                      UInt (0) );
+	
+	 m_exporter->addVariable (    ExporterData<RegionMesh<LinearTetra> >::VectorField,
+                                     "Patch VectorField",
+                                     M_emSolver.structuralOperatorPtr()->dispFESpacePtr(),
+                                     this->patchVecSumPtr(),
+                                     UInt (0) );
 
+	m_exporter->addVariable  (  ExporterData<RegionMesh<LinearTetra> >::VectorField,
+                                     "Directional Vectorfield",
+                                     M_emSolver.structuralOperatorPtr()->dispFESpacePtr(),
+                                     this->directVecSumPtr(),
+                                     UInt (0) );
+
+
+	
         m_exporter->addVariable (    ExporterData<RegionMesh<LinearTetra> >::ScalarField,
                                      "Patch location",
                                      M_emSolver.electroSolverPtr()->feSpacePtr(),
                                      this->patchLocSumPtr(),
                                      UInt (0) );
+	
+	m_exporter->addVariable (    ExporterData<RegionMesh<LinearTetra> >::ScalarField,
+				     "Patch Faces Location",
+				     M_emSolver.electroSolverPtr()->feSpacePtr(),
+				     this->patchFacesLocSumPtr(),
+				     UInt (0) );
         
         m_exporter->addVariable (    ExporterData<RegionMesh<LinearTetra> >::VectorField,
                                      "Fibers",
@@ -385,8 +405,7 @@ public:
     {
         return m_patchLocationSumPtr;
     }
-    
-
+   
     const std::vector<std::vector<double> > pressureloader (const std::string& filename)
     {
     #include <string>
@@ -442,6 +461,38 @@ public:
    
     }
  
+    void setPatchFacesLocationSumPtr(vectorPtr_Type patchFacesLocationSumPtr)
+    {
+
+	m_patchFacesLocationSumPtr = patchFacesLocationSumPtr;
+    }
+
+    vectorPtr_Type patchFacesLocSumPtr()
+    {
+       return m_patchFacesLocationSumPtr;
+    }
+
+    void setPatchVecSumPtr(vectorPtr_Type patchVecSumPtr)
+    {
+	m_patchVecSumPtr = patchVecSumPtr;
+    }    
+
+    vectorPtr_Type patchVecSumPtr()
+    {
+       return m_patchVecSumPtr;
+    }
+
+
+    void setdirecVectorPtr(vectorPtr_Type direcVectorPtr)
+    {
+        m_directionVecFieldPtr = direcVectorPtr;
+    }
+
+    vectorPtr_Type directVecSumPtr()
+    {
+       return m_directionVecFieldPtr;
+    }
+
 protected:
     
     EmSolver& M_emSolver;
@@ -458,7 +509,9 @@ protected:
 
     boost::shared_ptr<VectorEpetra> m_patchDisplacementSumPtr;
     boost::shared_ptr<VectorEpetra> m_patchLocationSumPtr;
-    
+    boost::shared_ptr<VectorEpetra> m_patchFacesLocationSumPtr;    
+    boost::shared_ptr<VectorEpetra> m_patchVecSumPtr;
+    boost::shared_ptr<VectorEpetra> m_directionVecFieldPtr;
     
     
     std::string pipeToString ( const char* command )

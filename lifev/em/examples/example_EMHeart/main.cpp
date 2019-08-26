@@ -52,11 +52,15 @@
 #include <lifev/em/examples/example_EMHeart/EssentialPatchBCCircularSmooth.hpp>
 #include <lifev/em/examples/example_EMHeart/EssentialPatchBCEllipseSmooth.hpp>
 #include <lifev/em/examples/example_EMHeart/EssentialPatchBCShell.hpp>
+#include <lifev/em/examples/example_EMHeart/EssentialPatchBCMovingPlane.h>
+#include <lifev/em/examples/example_EMHeart/EssentialPatchBCMovingPlane.cpp>
+#include <lifev/em/examples/example_EMHeart/EssentialPatchBCPatchReal.hpp>
+#include <lifev/em/examples/example_EMHeart/EssentialPatchBCPatchRealYZRotation.hpp>
 
 // Track nan
 // #include <fenv.h>
 
-
+#include <iostream>
 
 using namespace LifeV;
 
@@ -187,6 +191,12 @@ int main (int argc, char** argv)
     if ( 0 == comm->MyPID() ) std::cout << "\nResizing mesh done" << std::endl;
     if ( 0 == comm->MyPID() ) solver.fullMeshPtr()->showMe();
     
+    //THIS ONE I HAVE added to get local to global mapping
+
+   // if ( 0 == comm->MyPID() ) solver.fullMeshPtr()->printLtGMap(std::cout);
+
+
+
     
     //============================================
     // Setup solver (including fe-spaces & b.c.)
@@ -198,15 +208,28 @@ int main (int argc, char** argv)
     auto FESpace = solver.structuralOperatorPtr() -> dispFESpacePtr();
     auto dETFESpace = solver.electroSolverPtr() -> displacementETFESpacePtr();
     auto ETFESpace = solver.electroSolverPtr() -> ETFESpacePtr();
-    
+    Real t = 0;
+
+    //Here we want to measure the time
+    //LifeChrono stopWatchBc;
+    //stopWatchBc.start();
     
     //============================================
     // Create essential patch b.c.
     //============================================
+    //
+
     EssentialPatchBCHandler patchHandler ("listEssentialPatchBC", dataFile);
-    patchHandler.addPatchBC(solver);
+    patchHandler.addPatchBC(solver,t);
     
-    if ( 0 == comm->MyPID() ) PRINT_FACTORY(EssentialPatchBC);
+    //stopWatchBc.stop();
+    //std::cout << "Essential patch BC created in: " << stopWatchBc.diff() << " s" << std::endl;
+
+    if ( 0 == comm->MyPID())
+    {
+    	PRINT_FACTORY(EssentialPatchBC);
+    	//std::cout << "Essential patch BC created in: " << stopWatchBc.diff() << " s" << std::endl;
+     }
     
 
     //============================================
@@ -253,6 +276,8 @@ int main (int argc, char** argv)
     if ( 0 == comm->MyPID() ) std::cout << "\n\nNode number: " << disp.size() / 3 << " -> dof: " << disp.size() << "\n\n";
     
     
+
+
     //============================================
     // Electric stimulus function
     //============================================
@@ -262,10 +287,12 @@ int main (int argc, char** argv)
     //============================================
     // Apply essential patch b.c.
     //============================================
-    patchHandler.applyPatchBC(solver);
+     patchHandler.applyPatchBC(solver); //this one we get downwards to get better understanding
     heartSolver.setPatchDisplacementSumPtr(patchHandler.patchDisplacementSumPtr());
     heartSolver.setPatchLocationSumPtr(patchHandler.patchLocationSumPtr());
-
+    heartSolver.setPatchFacesLocationSumPtr(patchHandler.patchFacesLocationSumPtr());
+    heartSolver.setPatchVecSumPtr(patchHandler.patchVecSumPtr());
+    heartSolver.setdirecVectorPtr(patchHandler.directionalVecSumPtr());
     
     //============================================
     // Setup exporters for EMSolver
@@ -310,7 +337,11 @@ int main (int argc, char** argv)
     //============================================
     // Update and print bcHandler
     //============================================
+    //
+    //MAYBE THIS ONE IS IMPORTANT FOR US
     solver.bcInterfacePtr()->handler()->bcUpdate( *solver.structuralOperatorPtr()->dispFESpacePtr()->mesh(), solver.structuralOperatorPtr()->dispFESpacePtr()->feBd(), solver.structuralOperatorPtr()->dispFESpacePtr()->dof() );
+    
+    //patchHandler.applyPatchBC(solver); //this line here is a test
     
     if ( 0 == comm->MyPID() ) solver.bcInterfacePtr() -> handler() -> showMe();
     
@@ -374,8 +405,8 @@ int main (int argc, char** argv)
     VectorSmall<2> AvgWorkVent;
     
     UInt iter (0);
-    Real t (0);
-    
+    // Real t (0);
+
     auto printCoupling = [&] ( std::string label ) { if ( 0 == comm->MyPID() )
     {
         std::cout.precision(5);
@@ -545,7 +576,7 @@ int main (int argc, char** argv)
         solver.solveMechanics();
     }
 
-    
+
     //============================================
     // Preload
     //============================================
@@ -569,6 +600,8 @@ int main (int argc, char** argv)
 
         //solver.saveSolution (-1.0);
         heartSolver.postProcess( (exportPreload ? -preloadSteps : -1.0) );
+
+        //we get killed in the postProcessStep
 
         if ( 0 == comm->MyPID() )
         {
@@ -663,7 +696,7 @@ int main (int argc, char** argv)
     LifeChrono chronoExport;
     chronoExport.start();
 
-    for (int k (1); k <= maxiter; k++)
+    for (int k (1); k <= maxiter; k++) // here begins the time looping
     {
         if ( 0 == comm->MyPID() )
         {
@@ -712,6 +745,7 @@ int main (int argc, char** argv)
                 std::cout << "\nmakeMechanicsCirc.Coupling = " << makeMechanicsCirculationCoupling;
                 std::cout << "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
             }
+
             
             if ( makeMechanicsCirculationCoupling )
             {
@@ -1107,7 +1141,7 @@ int main (int argc, char** argv)
             }
         }
         
-    }
+    }//here ends the time loop
 
     
     //============================================
