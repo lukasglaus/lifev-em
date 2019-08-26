@@ -283,6 +283,7 @@ int main (int argc, char** argv)
     //============================================
     function_Type stim = &HeartSolver<EMSolver<mesh_Type, monodomain_Type> >::Iapp;
 
+    if ( 0 == comm->MyPID() ) std::cout << "\nTEST1";
     
     //============================================
     // Apply essential patch b.c.
