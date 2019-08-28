@@ -55,7 +55,7 @@
 #include <lifev/em/examples/example_EMHeart/EssentialPatchBCMovingPlane.h>
 #include <lifev/em/examples/example_EMHeart/EssentialPatchBCMovingPlane.cpp>
 #include <lifev/em/examples/example_EMHeart/EssentialPatchBCPatchReal.hpp>
-#include <lifev/em/examples/example_EMHeart/EssentialPatchBCPatchRealYZRotation.hpp>
+//#include <lifev/em/examples/example_EMHeart/EssentialPatchBCPatchRealYZRotation.hpp>
 
 // Track nan
 // #include <fenv.h>

@@ -1006,7 +1006,7 @@ protected:
 };
 
 
-REGISTER(EssentialPatchBC, EssentialPatchBCPatchRealYZRotation);
+REGISTER (EssentialPatchBC, EssentialPatchBCPatchRealYZRotation);
 
 };
 #endif /* ESSENTIALPATCHBCPATCHREALYZROTATION_HPP_ */
