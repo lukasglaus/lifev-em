@@ -1080,10 +1080,11 @@ void StructuralOperator<Mesh>::buildSystem ( const Real coefficient )
     M_Displayer->leaderPrint ("\nS-  Computing constant matrices ...          ");
     LifeChrono chrono;
     chrono.start();
-
+    if ( 0 == comm->MyPID() ) std::cout << "\nStructuralOperator.hpp chrono.start works";
     computeMassMatrix ( coefficient );
+    if ( 0 == comm->MyPID() ) std::cout << "\ncomputeMassMatrix(coefficient) works";
     M_material->computeLinearStiff (M_data, M_mapMarkersVolumes, M_mapMarkersIndexes);
-
+    if ( 0 == comm->MyPID() ) std::cout << "\nM_material works";
     chrono.stop();
     M_Displayer->leaderPrintMax ( "done in ", chrono.diff() );
 }

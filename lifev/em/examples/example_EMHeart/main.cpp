@@ -283,20 +283,31 @@ int main (int argc, char** argv)
     //============================================
     function_Type stim = &HeartSolver<EMSolver<mesh_Type, monodomain_Type> >::Iapp;
     
-    if ( 0 == comm->MyPID() ) std::cout << "\nTest1";
-    
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest1A";
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest1B";
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest1C";
     //============================================
     // Apply essential patch b.c.
     //============================================
     if ( 0 == comm->MyPID() ) std::cout << "\nTest2";
+    
     patchHandler.applyPatchBC(solver); //this one we get downwards to get better understanding
     if ( 0 == comm->MyPID() ) std::cout << "\nTest3";
+    
     heartSolver.setPatchDisplacementSumPtr(patchHandler.patchDisplacementSumPtr());
     if ( 0 == comm->MyPID() ) std::cout << "\nTest4";
+    
     heartSolver.setPatchLocationSumPtr(patchHandler.patchLocationSumPtr());
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest5";
+    
     heartSolver.setPatchFacesLocationSumPtr(patchHandler.patchFacesLocationSumPtr());
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest6";
+    
     heartSolver.setPatchVecSumPtr(patchHandler.patchVecSumPtr());
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest7";
+    
     heartSolver.setdirecVectorPtr(patchHandler.directionalVecSumPtr());
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest8";
     
     //============================================
     // Setup exporters for EMSolver
