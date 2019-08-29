@@ -282,13 +282,17 @@ int main (int argc, char** argv)
     // Electric stimulus function
     //============================================
     function_Type stim = &HeartSolver<EMSolver<mesh_Type, monodomain_Type> >::Iapp;
-
+    
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest1";
     
     //============================================
     // Apply essential patch b.c.
     //============================================
-     patchHandler.applyPatchBC(solver); //this one we get downwards to get better understanding
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest2";
+    patchHandler.applyPatchBC(solver); //this one we get downwards to get better understanding
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest3";
     heartSolver.setPatchDisplacementSumPtr(patchHandler.patchDisplacementSumPtr());
+    if ( 0 == comm->MyPID() ) std::cout << "\nTest4";
     heartSolver.setPatchLocationSumPtr(patchHandler.patchLocationSumPtr());
     heartSolver.setPatchFacesLocationSumPtr(patchHandler.patchFacesLocationSumPtr());
     heartSolver.setPatchVecSumPtr(patchHandler.patchVecSumPtr());
