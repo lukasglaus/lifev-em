@@ -650,7 +650,7 @@ int main (int argc, char** argv)
         std::cout << "\n*****************************************************************\n";
     }
     
-    //patchHandler.patchpositioner();
+    patchHandler.patchpositioner();
     
     if ( 0 == comm->MyPID() )
     {
