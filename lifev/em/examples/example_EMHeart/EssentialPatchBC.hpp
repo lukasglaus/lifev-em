@@ -1470,7 +1470,7 @@ public:
     }
 
     void test(){
-        std::cout << "test";
+        std::cout << "\ntest";
     }
     
 protected:
