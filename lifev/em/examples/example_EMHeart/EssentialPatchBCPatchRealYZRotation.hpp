@@ -62,7 +62,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 		}
 
 		initialiseRotationMatrices();
-		initialiseHeartAxis();
+		initialiseHeartAxis(); //definition der Achse
 		calculateyMaxzMax();
 		initialiseEllipsoidBoundaries();
 		//initialseMinMaxValues();
@@ -377,7 +377,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 		             UInt kGID = p2PatchDisplacement->blockMap().GID (j + 2 * nCompLocalDof);
 			
 			
-	                 coord[0] = p2PositionVector[iGID];
+	                 coord[0] = p2PositionVector[iGID]; //coordinaten des aktuellen Punkes
 	                 coord[1] = p2PositionVector[jGID];
 	                 coord[2] = p2PositionVector[kGID];
 			
@@ -405,7 +405,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 	                	 intermediateResult = matrixVectorMultiplicator(m_Ellipsoid, xVector);
 	                	 Real ellipseEquation = xVector.dot(intermediateResult)-1;
 
-	                	 if(ellipseEquation >= 0)
+	                	 if(ellipseEquation >= 0) //>= ausserhalb ellipsoid
 	                	 {
 	                		 a = m_patchDirection[0]*(m_Ellipsoid(0, 0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + m_patchDirection[2]*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2, 2)*m_patchDirection[2]);
 	                		 b = m_patchDirection[0]*(m_Ellipsoid(0, 0)*(coord[0]-fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2,0)*(coord[2] - fzeroZ)) + m_patchDirection[2]*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1, 2)*(coord[1] - fzeroY) + m_Ellipsoid(2, 2)*(coord[2] - fzeroZ)) + (coord[0] - fzeroX)*(m_Ellipsoid(0,0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + (coord[1] - fzeroY)*(m_Ellipsoid(0,1)*m_patchDirection[0] + m_Ellipsoid(2,1)*m_patchDirection[2]) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2,2)*m_patchDirection[2]);
@@ -422,7 +422,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 						
 					std::cout << "This is yMax: " << m_yMax << std::endl;
 					*/
-					 if(coord[1] >= 1.1*m_yMax || coord[1] <= 0.9*m_yMin)
+					 if(coord[1] >= 1.1*m_yMax || coord[1] <= 0.9*m_yMin) //oberste und unterste 10% auf Radius verschieben
 					 {
 						
 						bool checkRange = false;
@@ -1245,7 +1245,11 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 
 				return result;
 			}
-
+    
+        void patchpositioner ()
+        std::cout << "function in EssentialPatchBCPatchRealYZRotation.hpp works"
+        }
+    
 protected:
 
 			Real m_Phi;

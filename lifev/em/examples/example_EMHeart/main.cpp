@@ -287,7 +287,7 @@ int main (int argc, char** argv)
     //============================================
     // Apply essential patch b.c.
     //============================================
-     patchHandler.applyPatchBC(solver); //this one we get downwards to get better understanding
+    patchHandler.applyPatchBC(solver); //this one we get downwards to get better understanding
     heartSolver.setPatchDisplacementSumPtr(patchHandler.patchDisplacementSumPtr());
     heartSolver.setPatchLocationSumPtr(patchHandler.patchLocationSumPtr());
     heartSolver.setPatchFacesLocationSumPtr(patchHandler.patchFacesLocationSumPtr());
@@ -631,6 +631,8 @@ int main (int argc, char** argv)
             std::cout << "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
         }
         
+        
+        
         if ( 0 == comm->MyPID() )
         {
             std::cout << "\n*****************************************************************";
@@ -640,7 +642,25 @@ int main (int argc, char** argv)
 
     }
     
-
+    //============================================
+    // Positioning the patches
+    //============================================
+    if ( 0 == comm->MyPID() )
+    {
+        std::cout << "\n*****************************************************************";
+        std::cout << "\nStarting patch positioning";
+        std::cout << "\n*****************************************************************\n";
+    }
+    
+    patchHandler.patchpositioner();
+    
+    if ( 0 == comm->MyPID() )
+    {
+        std::cout << "\n*****************************************************************";
+        std::cout << "\nPatches successfully positioned";
+        std::cout << "\n*****************************************************************\n";
+    }
+    
     //============================================
     // Time loop
     //============================================
