@@ -1469,7 +1469,10 @@ public:
             	return m_directionVecFieldPtr;
     }
 
-
+    void test(){
+        std::cout << "test";
+    }
+    
 protected:
     
     void updatePatchDisplacementSum(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver)
