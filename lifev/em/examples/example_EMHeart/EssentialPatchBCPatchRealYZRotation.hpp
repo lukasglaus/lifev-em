@@ -1246,7 +1246,8 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 				return result;
 			}
 
-        void patchpositioner (){
+        void patchpositioner ()
+        {
     
         std::cout << "function in EssentialPatchBCPatchRealYZRotation.hpp works";
     
