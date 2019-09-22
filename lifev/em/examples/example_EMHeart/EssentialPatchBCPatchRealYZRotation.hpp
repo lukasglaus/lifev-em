@@ -522,8 +522,8 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
         Real fzeroY = m_yPointShift;
         Real fzeroZ = m_zPointShift + m_patchDirection[2]*activationFunction(time);;
         
-        Real maxdisplacement //the maximal displacement occuring at the beginning
-        int maxdisplacementID
+        Real maxdisplacement; //the maximal displacement occuring at the beginning
+        int maxdisplacementID;
         
         //These are coefficients of quadratic equation we need to solve for calculating the distance
         Real a;
