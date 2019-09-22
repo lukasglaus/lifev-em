@@ -499,7 +499,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 		}
 
     //added by lg
-    virtual Real patchpositioner (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
+    virtual Real patchpositioner (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& time)
     {
         
        // if ( 0 == comm->MyPID() )

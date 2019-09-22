@@ -614,12 +614,12 @@ public:
     void initialmodifyPatchBC(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver, const Real& time, int& PatchFlag)
     {
         
-        //if ( 0 == comm->MyPID() )
-        //{
+        /*if ( 0 == comm->MyPID() )
+         {
             std::cout << "\n*****************************************************************";
             std::cout << "\nStarting initialmodifyPatchBC:2";
             std::cout << "\n*****************************************************************\n";
-        //}
+        }*/
         
         //std::cout << "This is value of time variable: "<< time << std::endl;
         //int adder = 12;
@@ -652,7 +652,7 @@ public:
         
         modifyPatchArea(solver, currentPatchFlag, time);
         
-        Real maxdisplacement = patchpositioner(solver,dFeSpace, m_patchDirection, currentPatchDisp, time)//added by lg
+        Real maxdisplacement = patchpositioner(solver,dFeSpace, m_patchDirection, time)//added by lg
         
         Real currentPatchDisp = maxdisplacement + 1e-3;
         if ( 0 == solver.comm()->MyPID() ) std::cout << "\nEssentialPatchBC: " << m_Name << " displaced by " << currentPatchDisp << " cm";
@@ -681,12 +681,12 @@ public:
         //solver.bcInterfacePtr()->handler()->modifyBC(m_patchFlag, *m_patchDispBCPtr); //this is old version
         //solver.bcInterfacePtr() -> handler()->addBC (m_Name, m_patchFlag,  Essential, Component, *m_patchDispBCPtr, m_patchComponent);//idea is now that we add everytime a new BC
     
-        //if ( 0 == comm->MyPID() )
-        //{
+        /*if ( 0 == comm->MyPID() )
+        {
             std::cout << "\n*****************************************************************";
             std::cout << "\nStarting initialmodifyPatchBC:2";
             std::cout << "\n*****************************************************************\n";
-        //}
+        }*/
     
     }
     
