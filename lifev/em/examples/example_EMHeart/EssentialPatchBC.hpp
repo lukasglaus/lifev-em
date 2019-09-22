@@ -652,7 +652,7 @@ public:
         
         modifyPatchArea(solver, currentPatchFlag, time);
         
-        Real maxdisplacement = patchpositioner(solver,dFeSpace, m_patchDirection, time); //added by lg
+        Real maxdisplacement = patchpositioner(solver,dFeSpace, m_patchDirection, 0, time); //added by lg
         
         Real currentPatchDisp = maxdisplacement + 1e-3;
         if ( 0 == solver.comm()->MyPID() ) std::cout << "\nEssentialPatchBC: " << m_Name << " displaced by " << currentPatchDisp << " cm";
