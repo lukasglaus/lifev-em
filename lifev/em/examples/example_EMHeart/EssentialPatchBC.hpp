@@ -998,7 +998,7 @@ public:
 //protected: //moved down by lg
     
     //New function to find maximal necessary displacement to position the patches such that they only touch, but not penetrate the heart, lg
-    virtual Real patchpositioner (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
+    virtual Real patchpositioner (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& time)
     {
         
         //all Epetra_Vector constructors require a map argument that describes the layout of elements on the parallel machine
