@@ -845,7 +845,6 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
             
             if (displacement > maxdisplacement) {
                 maxdisplacement = displacement;
-                maxdisplacementID = j;
             }
         }
         
