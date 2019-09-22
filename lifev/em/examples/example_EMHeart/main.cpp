@@ -651,6 +651,9 @@ int main (int argc, char** argv)
     }
     
     patchHandler.test();
+    patchHandler.initialmodifyPatchBC(solver, t);
+    //patchHandler.patchpositioner
+    //patchHandler.patchpositioner
     //patchHandler.patchpositioner();
     //m_patchBCPtrVec[i]->patchpositioner();
     

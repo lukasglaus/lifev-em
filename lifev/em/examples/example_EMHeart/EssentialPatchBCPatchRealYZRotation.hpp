@@ -483,8 +483,8 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 			
 			
 	                (*p2PatchDisplacement)[iGID] = displacement*m_patchDirection[0]; //0.0
-	                (*p2PatchDisplacement)[jGID] = 0.0;
-	                (*p2PatchDisplacement)[kGID] =  displacement*m_patchDirection[2]; //0.0
+	                (*p2PatchDisplacement)[jGID] = displacement*m_patchDirection[1]; //0.0, modified by lg
+	                (*p2PatchDisplacement)[kGID] = displacement*m_patchDirection[2]; //0.0
 			
 
 		        }
@@ -498,7 +498,384 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 		        //return m_currentDisplacementVector;
 		}
 
+    //added by lg
+    virtual Real patchpositioner (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
+    {
+        
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nStarting patchpositioner";
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        //Real dispAdder = 0.005;
+        Vector3D coord;
+        Vector3D intermediateResult;
+        Real yDifference;
+        Real edgeSmoother;
+        Real displacement;
+        bool coordInPatchRange = false;
+        bool coordOnPatch = false;
+        Real fzeroX = m_xPointShift + m_patchDirection[0]*activationFunction(time);;
+        //Real fzeroY = m_vertexEllipse[1];
+        Real fzeroY = m_yPointShift;
+        Real fzeroZ = m_zPointShift + m_patchDirection[2]*activationFunction(time);;
+        
+        Real maxdisplacement //the maximal displacement occuring at the beginning
+        int maxdisplacementID
+        
+        //These are coefficients of quadratic equation we need to solve for calculating the distance
+        Real a;
+        Real b;
+        Real c;
+        
+        
+        Real lambdaOne=0;
+        Real lambdaTwo = 0;
+        
+        auto p2PositionVector = p2PositionVectorInitial(dFeSpace, solver);
+        //    std::cout << "p2PositionVector is of type: " << typeid(p2PositionVector).name() << std::endl;
+        
+        vectorPtr_Type p2PatchDisplacement (new VectorEpetra( dFeSpace->map(), Repeated ));
+        *p2PatchDisplacement *= 0.0;
+        auto nCompLocalDof = p2PatchDisplacement->epetraVector().MyLength() / 3;
+        
+        for (int j (0); j < nCompLocalDof; ++j)
+        {
+            // Get coordinates
+            
+            UInt iGID = p2PatchDisplacement->blockMap().GID (j);
+            UInt jGID = p2PatchDisplacement->blockMap().GID (j + nCompLocalDof);
+            UInt kGID = p2PatchDisplacement->blockMap().GID (j + 2 * nCompLocalDof);
+            
+            
+            coord[0] = p2PositionVector[iGID];
+            coord[1] = p2PositionVector[jGID];
+            coord[2] = p2PositionVector[kGID];
+            
+            
+            /*
+             coord[0] = (*m_currentPositionVector)[iGID];
+             coord[1] = (*m_currentPositionVector)[jGID];
+             coord[2] = (*m_currentPositionVector)[kGID];
+             */
+            
+            coordInPatchRange = coordinatesInPatchRangeCurrent(coord, time);
+            
+            if (coordInPatchRange == true)
+            {
+                intermediateResult[0] = 0.0;
+                intermediateResult[1] = 0.0;
+                intermediateResult[2] = 0.0;
+                
+                Vector3D xVector;
+                xVector[0] = coord[0] - m_xPointShift - m_patchDirection[0]*activationFunction(time);
+                // xVector[1] = coord[1] - m_vertexEllipse[1];
+                xVector[1] = coord[1] - m_yPointShift;
+                xVector[2] = coord[2] - m_zPointShift - m_patchDirection[2]*activationFunction(time);
+                
+                intermediateResult = matrixVectorMultiplicator(m_Ellipsoid, xVector);
+                Real ellipseEquation = xVector.dot(intermediateResult)-1;
+                
+                if(ellipseEquation >= 0)
+                {
+                    a = m_patchDirection[0]*(m_Ellipsoid(0, 0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + m_patchDirection[2]*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2, 2)*m_patchDirection[2]);
+                    b = m_patchDirection[0]*(m_Ellipsoid(0, 0)*(coord[0]-fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2,0)*(coord[2] - fzeroZ)) + m_patchDirection[2]*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1, 2)*(coord[1] - fzeroY) + m_Ellipsoid(2, 2)*(coord[2] - fzeroZ)) + (coord[0] - fzeroX)*(m_Ellipsoid(0,0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + (coord[1] - fzeroY)*(m_Ellipsoid(0,1)*m_patchDirection[0] + m_Ellipsoid(2,1)*m_patchDirection[2]) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2,2)*m_patchDirection[2]);
+                    c = (coord[0] - fzeroX)*(m_Ellipsoid(0, 0)*(coord[0] - fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2, 0)*(coord[2] - fzeroZ)) + (coord[1] - fzeroY)*(m_Ellipsoid(0, 1)*(coord[0] - fzeroX) + m_Ellipsoid(1, 1)*(coord[1] - fzeroY) + m_Ellipsoid(2,1)*(coord[2] - fzeroZ)) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1,2)*(coord[1] - fzeroY) + m_Ellipsoid(2,2)*(coord[2] - fzeroZ)) -1.0;
+                    
+                    //now we can solve for lambda one and lambda two
+                    
+                    lambdaOne = (-b + sqrt(std::pow(b,2) - 4*a*c))/(2*a);
+                    lambdaTwo = (-b - sqrt(std::pow(b,2) - 4*a*c))/(2*a);
+                    
+                    /*
+                     std::cout << "This is value of lambdaOne: " << lambdaOne << std::endl;
+                     std::cout << "This is value of lambdaTwo: " << lambdaTwo << std::endl;
+                     
+                     std::cout << "This is yMax: " << m_yMax << std::endl;
+                     */
+                    if(coord[1] >= 1.1*m_yMax || coord[1] <= 0.9*m_yMin)
+                    {
+                        
+                        bool checkRange = false;
+                        checkRange = coord[1] <= 0.9*m_yMin;
+                        if(checkRange == true)
+                        {
+                            yDifference = coord[1] - 0.9*m_yMin;
+                        }
+                        else
+                        {
+                            yDifference = coord[1] - 1.1*m_yMax;
+                        }
+                        
+                        edgeSmoother = 1*std::pow(yDifference, 2.0);
+                        
+                        displacement = std::abs(lambdaOne) < std::abs(lambdaTwo) ? std::abs(lambdaOne) : std::abs(lambdaTwo);
+                        displacement = displacement - edgeSmoother;
+                        if(displacement < 0.0)
+                        {
+                            displacement = 0.0;
+                        }
+                        
+                        //displacement = displacement/1.4;
+                    }
+                    else
+                    {
+                        
+                        
+                        displacement = std::abs(lambdaOne) < std::abs(lambdaTwo) ? std::abs(lambdaOne) : std::abs(lambdaTwo);
+                        //displacement = displacement/1.4;
+                        //displacement = 0.004;
+                    }
+                    //displacement = displacement/3;
+                    //displacement = displacement/2.5;
+                    //displacement = displacement/2.2;
+                    //displacement = displacement/2.1;
+                    /*
+                     (*p2PatchDisplacement)[iGID] = displacement*m_patchDirection[0]; //0.0
+                     (*p2PatchDisplacement)[jGID] = 0.0;
+                     (*p2PatchDisplacement)[kGID] = displacement*m_patchDirection[2]; //0.0
+                     */
+                    
+                    //We want to write displacement to a file and see how it evolves over time
+                    //checkDisplacement(solver,coord, displacement, time);
+                    
+                    //displacement = 0.3;  //0.08 + m_dispAdder;
+                    //std::cout << "This is value of displacement: " << displacement << std::endl;
+                    //checkDisplacement(solver,coord, displacement, time);
+                }
+            }
+            else
+            {
+                displacement = 0.0;
+            }
+            //in the following we need to solve a quadratic equation of the form: a*lambda^2 + b*lambda + c = 0 ; therefore we define first coefficients a, b, c
+            //need to check t;hese
+            
+            
+            
+            (*p2PatchDisplacement)[iGID] = displacement*m_patchDirection[0]*-1; //0.0
+            (*p2PatchDisplacement)[jGID] = displacement*m_patchDirection[1]*-1;//0.0;
+            (*p2PatchDisplacement)[kGID] = displacement*m_patchDirection[2]*-1; //0.0
+            
+            if displacement > maxdisplacement {
+                maxdisplacement = displacement;
+                maxdisplacementID = j;
+            }
+        }
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nmaxdisplacement= " <<maxdisplacement <<"maxdisplacementID= "<<maxdisplacementID;
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        //*m_currentPositionVector += *p2PatchDisplacement;
+        //*m_currentDisplacementVector += *p2PatchDisplacement;
+        
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nEnding patchpositioner";
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        return maxdisplacement;
+        //return p2PatchDisplacement;
+        //return m_currentDisplacementVector;
+    }
 
+    virtual vectorPtr_Type initialdirectionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time, Real maxdisplacement)
+    {
+        
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nStarting initialdirectionalVectorField";
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        //Real dispAdder = 0.005;
+        Vector3D coord;
+        Vector3D intermediateResult;
+        Real yDifference;
+        Real edgeSmoother;
+        Real displacement;
+        bool coordInPatchRange = false;
+        bool coordOnPatch = false;
+        Real fzeroX = m_xPointShift + m_patchDirection[0]*activationFunction(time);;
+        //Real fzeroY = m_vertexEllipse[1];
+        Real fzeroY = m_yPointShift;
+        Real fzeroZ = m_zPointShift + m_patchDirection[2]*activationFunction(time);;
+        
+        //These are coefficients of quadratic equation we need to solve for calculating the distance
+        Real a;
+        Real b;
+        Real c;
+        
+        
+        Real lambdaOne=0;
+        Real lambdaTwo = 0;
+        
+        auto p2PositionVector = p2PositionVectorInitial(dFeSpace, solver);
+        //    std::cout << "p2PositionVector is of type: " << typeid(p2PositionVector).name() << std::endl;
+        
+        vectorPtr_Type p2PatchDisplacement (new VectorEpetra( dFeSpace->map(), Repeated ));
+        *p2PatchDisplacement *= 0.0;
+        auto nCompLocalDof = p2PatchDisplacement->epetraVector().MyLength() / 3;
+        
+        for (int j (0); j < nCompLocalDof; ++j)
+        {
+            // Get coordinates
+            
+            UInt iGID = p2PatchDisplacement->blockMap().GID (j);
+            UInt jGID = p2PatchDisplacement->blockMap().GID (j + nCompLocalDof);
+            UInt kGID = p2PatchDisplacement->blockMap().GID (j + 2 * nCompLocalDof);
+            
+            
+            coord[0] = p2PositionVector[iGID];
+            coord[1] = p2PositionVector[jGID];
+            coord[2] = p2PositionVector[kGID];
+            
+            
+            /*
+             coord[0] = (*m_currentPositionVector)[iGID];
+             coord[1] = (*m_currentPositionVector)[jGID];
+             coord[2] = (*m_currentPositionVector)[kGID];
+             */
+            
+            coordInPatchRange = coordinatesInPatchRangeCurrent(coord, time);
+            
+            if (coordInPatchRange == true)
+            {
+                intermediateResult[0] = 0.0;
+                intermediateResult[1] = 0.0;
+                intermediateResult[2] = 0.0;
+                
+                Vector3D xVector;
+                xVector[0] = coord[0] - m_xPointShift - m_patchDirection[0]*activationFunction(time);
+                // xVector[1] = coord[1] - m_vertexEllipse[1];
+                xVector[1] = coord[1] - m_yPointShift;
+                xVector[2] = coord[2] - m_zPointShift - m_patchDirection[2]*activationFunction(time);
+                
+                intermediateResult = matrixVectorMultiplicator(m_Ellipsoid, xVector);
+                Real ellipseEquation = xVector.dot(intermediateResult)-1;
+                
+                if(ellipseEquation >= 0)
+                {
+                    a = m_patchDirection[0]*(m_Ellipsoid(0, 0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + m_patchDirection[2]*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2, 2)*m_patchDirection[2]);
+                    b = m_patchDirection[0]*(m_Ellipsoid(0, 0)*(coord[0]-fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2,0)*(coord[2] - fzeroZ)) + m_patchDirection[2]*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1, 2)*(coord[1] - fzeroY) + m_Ellipsoid(2, 2)*(coord[2] - fzeroZ)) + (coord[0] - fzeroX)*(m_Ellipsoid(0,0)*m_patchDirection[0] + m_Ellipsoid(2,0)*m_patchDirection[2]) + (coord[1] - fzeroY)*(m_Ellipsoid(0,1)*m_patchDirection[0] + m_Ellipsoid(2,1)*m_patchDirection[2]) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*m_patchDirection[0] + m_Ellipsoid(2,2)*m_patchDirection[2]);
+                    c = (coord[0] - fzeroX)*(m_Ellipsoid(0, 0)*(coord[0] - fzeroX) + m_Ellipsoid(1,0)*(coord[1] - fzeroY) + m_Ellipsoid(2, 0)*(coord[2] - fzeroZ)) + (coord[1] - fzeroY)*(m_Ellipsoid(0, 1)*(coord[0] - fzeroX) + m_Ellipsoid(1, 1)*(coord[1] - fzeroY) + m_Ellipsoid(2,1)*(coord[2] - fzeroZ)) + (coord[2] - fzeroZ)*(m_Ellipsoid(0,2)*(coord[0] - fzeroX) + m_Ellipsoid(1,2)*(coord[1] - fzeroY) + m_Ellipsoid(2,2)*(coord[2] - fzeroZ)) -1.0;
+                    
+                    //now we can solve for lambda one and lambda two
+                    
+                    lambdaOne = (-b + sqrt(std::pow(b,2) - 4*a*c))/(2*a);
+                    lambdaTwo = (-b - sqrt(std::pow(b,2) - 4*a*c))/(2*a);
+                    
+                    /*
+                     std::cout << "This is value of lambdaOne: " << lambdaOne << std::endl;
+                     std::cout << "This is value of lambdaTwo: " << lambdaTwo << std::endl;
+                     
+                     std::cout << "This is yMax: " << m_yMax << std::endl;
+                     */
+                    if(coord[1] >= 1.1*m_yMax || coord[1] <= 0.9*m_yMin)
+                    {
+                        
+                        bool checkRange = false;
+                        checkRange = coord[1] <= 0.9*m_yMin;
+                        if(checkRange == true)
+                        {
+                            yDifference = coord[1] - 0.9*m_yMin;
+                        }
+                        else
+                        {
+                            yDifference = coord[1] - 1.1*m_yMax;
+                        }
+                        
+                        edgeSmoother = 1*std::pow(yDifference, 2.0);
+                        
+                        displacement = std::abs(lambdaOne) < std::abs(lambdaTwo) ? std::abs(lambdaOne) : std::abs(lambdaTwo);
+                        displacement = displacement - edgeSmoother;
+                        if(displacement < 0.0)
+                        {
+                            displacement = 0.0;
+                        }
+                        
+                        //displacement = displacement/1.4;
+                    }
+                    else
+                    {
+                        
+                        
+                        displacement = std::abs(lambdaOne) < std::abs(lambdaTwo) ? std::abs(lambdaOne) : std::abs(lambdaTwo);
+                        //displacement = displacement/1.4;
+                        //displacement = 0.004;
+                    }
+                    //displacement = displacement/3;
+                    //displacement = displacement/2.5;
+                    //displacement = displacement/2.2;
+                    //displacement = displacement/2.1;
+                    /*
+                     (*p2PatchDisplacement)[iGID] = displacement*m_patchDirection[0]; //0.0
+                     (*p2PatchDisplacement)[jGID] = 0.0;
+                     (*p2PatchDisplacement)[kGID] = displacement*m_patchDirection[2]; //0.0
+                     */
+                    
+                    //We want to write displacement to a file and see how it evolves over time
+                    //checkDisplacement(solver,coord, displacement, time);
+                    
+                    //displacement = 0.3;  //0.08 + m_dispAdder;
+                    //std::cout << "This is value of displacement: " << displacement << std::endl;
+                    //checkDisplacement(solver,coord, displacement, time);
+                }
+            }
+            else
+            {
+                displacement = 0.0;
+            }
+            //in the following we need to solve a quadratic equation of the form: a*lambda^2 + b*lambda + c = 0 ; therefore we define first coefficients a, b, c
+            //need to check t;hese
+            
+            
+            
+            (*p2PatchDisplacement)[iGID] = displacement*m_patchDirection[0]*-1; //0.0
+            (*p2PatchDisplacement)[jGID] = displacement*m_patchDirection[1]*-1;//0.0;
+            (*p2PatchDisplacement)[kGID] = displacement*m_patchDirection[2]*-1; //0.0
+            
+            if displacement > maxdisplacement {
+                maxdisplacement = displacement;
+                maxdisplacementID = j;
+            }
+        }
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nmaxdisplacement= " <<maxdisplacement <<"maxdisplacementID= "<<maxdisplacementID;
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        //*m_currentPositionVector += *p2PatchDisplacement;
+        //*m_currentDisplacementVector += *p2PatchDisplacement;
+        
+        for (int j (0); j < nCompLocalDof; ++j)
+        {
+            (*p2PatchDisplacement)[iGID] = maxdisplacement*m_patchDirection[0]*-1; //0.0
+            (*p2PatchDisplacement)[jGID] = maxdisplacement*m_patchDirection[1]*-1;//0.0;
+            (*p2PatchDisplacement)[kGID] = maxdisplacement*m_patchDirection[2]*-1; //0.0
+        }
+        
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nEnding initialdirectionalVectorField";
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        return p2PatchDisplacement;
+        //return m_currentDisplacementVector;
+    }
+    
 	virtual void initialisePositionVector(const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver)
 		{	
 			std::cout << "We are in intialisePositionVectorFunction" << std::endl;
@@ -1245,13 +1622,6 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 
 				return result;
 			}
-
-        void patchpositioner()
-        {
-    
-        std::cout << "function in EssentialPatchBCPatchRealYZRotation.hpp works";
-    
-        }
 
     
 protected:

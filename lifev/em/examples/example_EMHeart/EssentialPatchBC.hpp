@@ -610,6 +610,85 @@ public:
        //  solver.bcInterfacePtr() -> handler()->addBC (m_Name, m_patchFlag,  Essential, Full , *m_patchDispBCPtr, m_patchComponent);
     }
     
+    //added by lg
+    void initialmodifyPatchBC(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver, const Real& time, int& PatchFlag)
+    {
+        
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nStarting initialmodifyPatchBC:2";
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        //std::cout << "This is value of time variable: "<< time << std::endl;
+        //int adder = 12;
+        //const int constantPatchFlag = PatchFlag;
+        //const int constantPatchFlag;
+        //std::string patchNameAdder = std::to_string(adder); //converts double variable time to string
+        //m_Name = m_Name + patchNameAdder;
+        
+        const int currentPatchFlag = PatchFlag;
+        
+        /*
+         if(PatchFlag == 900 && time != 0)
+         {
+         m_flagIncreaserOne += 10;
+         currentPatchFlag = m_flagIncreaserOne;
+         }
+         
+         if(PatchFlag == 901 && time != 0)
+         {
+         m_flagIncreaserTwo += 10;
+         currentPatchFlag = m_flagIncreaserTwo;
+         }
+         */
+        //std::cout << "This is modified PatchName: " << m_Name << std::endl;
+        
+        //std::cout << "This is patchFlag in modifyPatchBC which we give modifyPatchArea: " << constantPatchFlag << std::endl;
+        
+        
+        auto dFeSpace = solver.structuralOperatorPtr()->dispFESpacePtr();
+        
+        modifyPatchArea(solver, currentPatchFlag, time);
+        
+        Real maxdisplacement = patchpositioner(solver,dFeSpace, m_patchDirection, currentPatchDisp, time)//added by lg
+        
+        Real currentPatchDisp = maxdisplacement + 1e-3;
+        if ( 0 == solver.comm()->MyPID() ) std::cout << "\nEssentialPatchBC: " << m_Name << " displaced by " << currentPatchDisp << " cm";
+        
+        m_patchDispPtr = initialdirectionalVectorField(solver,dFeSpace, m_patchDirection, currentPatchDisp, time, maxdisplacement);
+        
+        m_patchDispBCPtr.reset( new bcVector_Type( *m_patchDispPtr, dFeSpace->dof().numTotalDof(), 1 ) );
+        /*
+         if (49.99  <= time && time  <= 50.02)
+         {
+         solver.bcInterfacePtr() -> handler()->addBC (m_Name, currentPatchFlag,  Essential, Component, *m_patchDispBCPtr, m_patchComponent);
+         solver.bcInterfacePtr()->handler()->modifyBC(currentPatchFlag, *m_patchDispBCPtr);
+         if ( 0 == solver.comm()->MyPID() ) solver.bcInterfacePtr() -> handler() -> showMe();
+         }
+         
+         if (time > 51)
+         {
+         std::cout << "We are now modifing the BC which we inserted later" << std::endl;
+         solver.bcInterfacePtr()->handler()->modifyBC(currentPatchFlag, *m_patchDispBCPtr);
+         }
+         */
+        //solver.bcInterfacePtr() -> handler()->addBC (m_Name, currentPatchFlag,  Essential, Component, *m_patchDispBCPtr, m_patchComponent);
+        //solver.bcInterfacePtr() -> handler()->addBC (m_Name, m_patchFlag,  Essential, Component, *m_patchDispBCPtr, m_patchComponent);
+        // if ( 0 == solver.comm()->MyPID() ) solver.bcInterfacePtr() -> handler() -> showMe();
+        solver.bcInterfacePtr()->handler()->modifyBC(currentPatchFlag, *m_patchDispBCPtr); //This was the version how it worked
+        //solver.bcInterfacePtr()->handler()->modifyBC(m_patchFlag, *m_patchDispBCPtr); //this is old version
+        //solver.bcInterfacePtr() -> handler()->addBC (m_Name, m_patchFlag,  Essential, Component, *m_patchDispBCPtr, m_patchComponent);//idea is now that we add everytime a new BC
+    
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nStarting initialmodifyPatchBC:2";
+            std::cout << "\n*****************************************************************\n";
+        }
+    
+    }
     
     void modifyPatchBC(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver, const Real& time, int& PatchFlag)
     {
@@ -916,9 +995,55 @@ public:
     	return *m_patchFacesLocationPtr;
     }
 
-protected:
+//protected: //moved down by lg
     
-
+    //New function to find maximal necessary displacement to position the patches such that they only touch, but not penetrate the heart, lg
+    virtual Real patchpositioner (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
+    {
+        
+        //all Epetra_Vector constructors require a map argument that describes the layout of elements on the parallel machine
+        //repeated just indicates that the local vectors are replicated
+        
+        //I'm not sure yet how we can use then the variable vectorfield
+        
+        //via the object dFeSpace we have access to the map; need to take closer look
+        
+        //is the same as int* pointer = new int[n] ; some dzynamic array allocation
+        //the one above can also be written as int* pointer(new int[n])
+        //so basically we have a pointer with name vectorfield of type VectorEpetra (which is a class) that points to the constructor of the class
+        
+        vectorPtr_Type vectorField (new VectorEpetra( dFeSpace->map(), Repeated )); //no idea what is happening here, but I think here happens the magic
+        auto nCompLocalDof = vectorField->epetraVector().MyLength() / 3; //here we want the length of the vector; don't get it
+        
+        //then we look at the length of the Vector; so we look how many elements it has in it and divided it by 3 to get the number of nodes; because I assume at every node we have three degrees of freedom; therefore we divide by 3
+        direction.normalize(); //here the input direction vector gets normalized
+        
+        direction *= disp; //then the direction vector gets multiplied by the displacement
+        
+        for (int j (0); j < nCompLocalDof; ++j) //What happens in this for loop?
+        {
+            //does GID stand for Group identification? Or I think now that it stands for global index
+            
+            //what I don't get yet is the one with GID
+            
+            UInt iGID = vectorField->blockMap().GID (j); //UInt is just unsigned integer 32 bit
+            UInt jGID = vectorField->blockMap().GID (j + nCompLocalDof);
+            UInt kGID = vectorField->blockMap().GID (j + 2 * nCompLocalDof);
+            
+            
+            //so here we dereference our pointer but somehow I don't get it
+            (*vectorField)[iGID] = direction[0]; // direction is just a 3D vector with direction[0] is x coordinate of vector; are we telling here the different nodes how much they need to displace? //here I should test that with my own vector programm and see how it goes
+            (*vectorField)[jGID] = direction[1];
+            (*vectorField)[kGID] = direction[2];
+        }
+        Real testdouble;
+        testdouble = 7;
+        
+        return testdouble;
+    }
+    
+protected: //moved down,lg
+    
     //I think main message of directional vector Field is that we can say which node should move in which direction by how much
     virtual vectorPtr_Type directionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
     {
@@ -1291,7 +1416,42 @@ public:
         
         if ( solver.comm()->MyPID() == 0 ) std::cout << "\nEssentialPatchBCHandler: " << __FUNCTION__ << " - done" << std::endl;
     }
-
+    
+    //added by lg
+    void initialmodifyPatchBC(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver, const Real& time)
+    {
+        
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nStarting initialmodifyPatchBC:1";
+            std::cout << "\n*****************************************************************\n";
+        }
+        
+        int PatchFlag = 899;
+        //std::cout << PatchFlag << std::endl;
+        for (auto& patch : m_patchBCPtrVec)
+        {
+            PatchFlag += 1;
+            patch->initialmodifyPatchBC(solver, time, PatchFlag);
+        }
+        
+        updatePatchDisplacementSum(solver);
+        updatePatchLocationSum(solver);
+        updatePatchFacesLocationSum(solver);
+        updatePatchVec(solver, time);
+        updateDispDirectionalVec(solver, time);
+        
+        if ( solver.comm()->MyPID() == 0 ) std::cout << "\nEssentialPatchBCHandler: " << __FUNCTION__ << " - done" << std::endl;
+    
+        if ( 0 == comm->MyPID() )
+        {
+            std::cout << "\n*****************************************************************";
+            std::cout << "\nEnding initialmodifyPatchBC:1";
+            std::cout << "\n*****************************************************************\n";
+        }
+    
+    }
 
     void getcoordinates(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver)
     {
@@ -1470,7 +1630,8 @@ public:
     }
 
     void test(){
-        std::cout << "\ntest";
+        std::cout << "\n void test{} in EssentialPatchBC.hpp works";
+        
     }
     
 protected:
