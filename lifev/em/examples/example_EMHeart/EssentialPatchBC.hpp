@@ -1045,6 +1045,49 @@ public:
 protected: //moved down,lg
     
     //I think main message of directional vector Field is that we can say which node should move in which direction by how much
+
+    virtual vectorPtr_Type initialdirectionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
+    {
+        
+        //all Epetra_Vector constructors require a map argument that describes the layout of elements on the parallel machine
+        //repeated just indicates that the local vectors are replicated
+        
+        //I'm not sure yet how we can use then the variable vectorfield
+        
+        //via the object dFeSpace we have access to the map; need to take closer look
+        
+        //is the same as int* pointer = new int[n] ; some dzynamic array allocation
+        //the one above can also be written as int* pointer(new int[n])
+        //so basically we have a pointer with name vectorfield of type VectorEpetra (which is a class) that points to the constructor of the class
+        
+        vectorPtr_Type vectorField (new VectorEpetra( dFeSpace->map(), Repeated )); //no idea what is happening here, but I think here happens the magic
+        auto nCompLocalDof = vectorField->epetraVector().MyLength() / 3; //here we want the length of the vector; don't get it
+        
+        //then we look at the length of the Vector; so we look how many elements it has in it and divided it by 3 to get the number of nodes; because I assume at every node we have three degrees of freedom; therefore we divide by 3
+        direction.normalize(); //here the input direction vector gets normalized
+        
+        direction *= disp; //then the direction vector gets multiplied by the displacement
+        
+        for (int j (0); j < nCompLocalDof; ++j) //What happens in this for loop?
+        {
+            //does GID stand for Group identification? Or I think now that it stands for global index
+            
+            //what I don't get yet is the one with GID
+            
+            UInt iGID = vectorField->blockMap().GID (j); //UInt is just unsigned integer 32 bit
+            UInt jGID = vectorField->blockMap().GID (j + nCompLocalDof);
+            UInt kGID = vectorField->blockMap().GID (j + 2 * nCompLocalDof);
+            
+            
+            //so here we dereference our pointer but somehow I don't get it
+            (*vectorField)[iGID] = direction[0]; // direction is just a 3D vector with direction[0] is x coordinate of vector; are we telling here the different nodes how much they need to displace? //here I should test that with my own vector programm and see how it goes
+            (*vectorField)[jGID] = direction[1];
+            (*vectorField)[kGID] = direction[2];
+        }
+        
+        return vectorField;
+    }
+
     virtual vectorPtr_Type directionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
     {
 
