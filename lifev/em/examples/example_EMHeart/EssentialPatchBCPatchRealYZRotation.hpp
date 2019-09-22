@@ -690,11 +690,11 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
     {
         
         /*if ( 0 == comm->MyPID() )
-        {/*
+        {
             std::cout << "\n*****************************************************************";
             std::cout << "\nStarting initialdirectionalVectorField";
             std::cout << "\n*****************************************************************\n";
-        //}
+        }*/
         
         //Real dispAdder = 0.005;
         Vector3D coord;
