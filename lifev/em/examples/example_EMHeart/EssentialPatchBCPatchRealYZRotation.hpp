@@ -502,12 +502,12 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
     virtual Real patchpositioner (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
     {
         
-        if ( 0 == comm->MyPID() )
-        {
+       // if ( 0 == comm->MyPID() )
+       // {
             std::cout << "\n*****************************************************************";
             std::cout << "\nStarting patchpositioner";
             std::cout << "\n*****************************************************************\n";
-        }
+        //}
         
         //Real dispAdder = 0.005;
         Vector3D coord;
@@ -664,22 +664,22 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
                 maxdisplacementID = j;
             }
         }
-        if ( 0 == comm->MyPID() )
-        {
+      //  if ( 0 == comm->MyPID() )
+        //{
             std::cout << "\n*****************************************************************";
-            std::cout << "\nmaxdisplacement= " <<maxdisplacement <<"maxdisplacementID= "<<maxdisplacementID;
+            std::cout << "\nmaxdisplacement= " << maxdisplacement << "maxdisplacementID= " << maxdisplacementID;
             std::cout << "\n*****************************************************************\n";
-        }
+        //}
         
         //*m_currentPositionVector += *p2PatchDisplacement;
         //*m_currentDisplacementVector += *p2PatchDisplacement;
         
-        if ( 0 == comm->MyPID() )
-        {
+       // if ( 0 == comm->MyPID() )
+        //{
             std::cout << "\n*****************************************************************";
             std::cout << "\nEnding patchpositioner";
             std::cout << "\n*****************************************************************\n";
-        }
+        //}
         
         return maxdisplacement;
         //return p2PatchDisplacement;
@@ -689,12 +689,12 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
     virtual vectorPtr_Type initialdirectionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time, Real maxdisplacement)
     {
         
-        if ( 0 == comm->MyPID() )
-        {
+        /*if ( 0 == comm->MyPID() )
+        {/*
             std::cout << "\n*****************************************************************";
             std::cout << "\nStarting initialdirectionalVectorField";
             std::cout << "\n*****************************************************************\n";
-        }
+        //}
         
         //Real dispAdder = 0.005;
         Vector3D coord;
@@ -848,12 +848,6 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
                 maxdisplacementID = j;
             }
         }
-        if ( 0 == comm->MyPID() )
-        {
-            std::cout << "\n*****************************************************************";
-            std::cout << "\nmaxdisplacement= " <<maxdisplacement <<"maxdisplacementID= "<<maxdisplacementID;
-            std::cout << "\n*****************************************************************\n";
-        }
         
         //*m_currentPositionVector += *p2PatchDisplacement;
         //*m_currentDisplacementVector += *p2PatchDisplacement;
@@ -865,12 +859,12 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
             (*p2PatchDisplacement)[kGID] = maxdisplacement*m_patchDirection[2]*-1; //0.0
         }
         
-        if ( 0 == comm->MyPID() )
-        {
+        //if ( 0 == comm->MyPID() )
+        //{
             std::cout << "\n*****************************************************************";
             std::cout << "\nEnding initialdirectionalVectorField";
             std::cout << "\n*****************************************************************\n";
-        }
+        //}
         
         return p2PatchDisplacement;
         //return m_currentDisplacementVector;
