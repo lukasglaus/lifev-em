@@ -1046,7 +1046,7 @@ protected: //moved down,lg
     
     //I think main message of directional vector Field is that we can say which node should move in which direction by how much
 
-    virtual vectorPtr_Type initialdirectionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time)
+    virtual vectorPtr_Type initialdirectionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time, Real maxdisplacement)
     {
         
         //all Epetra_Vector constructors require a map argument that describes the layout of elements on the parallel machine
