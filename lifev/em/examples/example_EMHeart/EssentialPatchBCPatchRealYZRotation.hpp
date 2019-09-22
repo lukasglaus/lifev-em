@@ -659,7 +659,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
             (*p2PatchDisplacement)[jGID] = displacement*m_patchDirection[1]*-1;//0.0;
             (*p2PatchDisplacement)[kGID] = displacement*m_patchDirection[2]*-1; //0.0
             
-            if displacement > maxdisplacement {
+            if (displacement > maxdisplacement) {
                 maxdisplacement = displacement;
                 maxdisplacementID = j;
             }
