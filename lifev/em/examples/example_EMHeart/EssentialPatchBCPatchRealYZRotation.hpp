@@ -483,7 +483,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 			
 			
 	                (*p2PatchDisplacement)[iGID] = displacement*m_patchDirection[0]; //0.0
-	                (*p2PatchDisplacement)[jGID] = displacement*m_patchDirection[1]; //0.0, modified by lg
+                    (*p2PatchDisplacement)[jGID] = 0.0; //intended such that only horizontal displ. happens
 	                (*p2PatchDisplacement)[kGID] = displacement*m_patchDirection[2]; //0.0
 			
 
