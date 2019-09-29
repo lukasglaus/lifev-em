@@ -1464,12 +1464,12 @@ public:
     void initialmodifyPatchBC(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver, const Real& time)
     {
         
-       // if ( 0 == comm->MyPID() )
-        //{
+       if ( solver.comm()->MyPID() == 0 )
+        {
             std::cout << "\n*****************************************************************";
             std::cout << "\nStarting initialmodifyPatchBC:1";
             std::cout << "\n*****************************************************************\n";
-        //}
+        }
         
         int PatchFlag = 899;
         //std::cout << PatchFlag << std::endl;
