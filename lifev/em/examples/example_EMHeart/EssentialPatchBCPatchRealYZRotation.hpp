@@ -253,7 +253,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 
 	virtual void modifyPatchArea(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const int& newFlag, const Real& time)
 		{
-			if ( solver.comm()->MyPID() == 0 ) std::cout << "WE ARE IN MODIFY PATCH AREA " << std::endl;
+			if ( solver.comm()->MyPID() == 0 ) std::cout << "\nWE ARE IN MODIFY PATCH AREA " << std::endl;
 
 			auto p2FeSpace = solver.electroSolverPtr()->feSpacePtr();
 			auto p2dFeSpace = solver.structuralOperatorPtr()->dispFESpacePtr();
@@ -689,12 +689,12 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
     virtual vectorPtr_Type initialdirectionalVectorField (EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver ,const boost::shared_ptr<FESpace<RegionMesh<LinearTetra>, MapEpetra >> dFeSpace, Vector3D& direction, const Real& disp, const Real& time, Real maxdisplacement)
     {
         
-        /*if ( 0 == comm->MyPID() )
+        if ( solver.comm()->MyPID() == 0 )
         {
             std::cout << "\n*****************************************************************";
-            std::cout << "\nStarting initialdirectionalVectorField";
+            std::cout << "\nSTARTING initialdirectionalVectorField";
             std::cout << "\n*****************************************************************\n";
-        }*/
+        }
         
         //Real dispAdder = 0.005;
         Vector3D coord;
@@ -739,12 +739,12 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
         }
     
     
-        //if ( 0 == comm->MyPID() )
-        //{
+        if ( solver.comm()->MyPID() == 0 )
+        {
             std::cout << "\n*****************************************************************";
-            std::cout << "\nEnding initialdirectionalVectorField";
+            std::cout << "\nENDING initialdirectionalVectorField";
             std::cout << "\n*****************************************************************\n";
-        //}
+        }
         
         return p2PatchDisplacement;
         //return m_currentDisplacementVector;
