@@ -1487,12 +1487,12 @@ public:
         
         if ( solver.comm()->MyPID() == 0 ) std::cout << "\nEssentialPatchBCHandler: " << __FUNCTION__ << " - done" << std::endl;
     
-       // if ( 0 == comm->MyPID() )
-       // {
+       if ( solver.comm()->MyPID() == 0 )
+        {
             std::cout << "\n*****************************************************************";
             std::cout << "\nEnding initialmodifyPatchBC:1";
             std::cout << "\n*****************************************************************\n";
-        //}
+        }
     
     }
 
