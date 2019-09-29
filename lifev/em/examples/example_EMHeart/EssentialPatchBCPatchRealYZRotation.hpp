@@ -667,7 +667,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
         if ( solver.comm()->MyPID() == 0 )
             {
             std::cout << "\n*****************************************************************";
-            std::cout << "\nmaxdisplacement= " << maxdisplacement << "maxdisplacementID= " << maxdisplacementID;
+            std::cout << "\nmaxdisplacement= " << maxdisplacement << ", maxdisplacementID= " << maxdisplacementID;
             std::cout << "\n*****************************************************************\n";
             }
         
