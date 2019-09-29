@@ -1467,7 +1467,7 @@ public:
        if ( solver.comm()->MyPID() == 0 )
         {
             std::cout << "\n*****************************************************************";
-            std::cout << "\nStarting initialmodifyPatchBC:1";
+            std::cout << "\nSTARTING initialmodifyPatchBC in EssentialPatchBC.hpp";
             std::cout << "\n*****************************************************************\n";
         }
         
@@ -1490,7 +1490,7 @@ public:
        if ( solver.comm()->MyPID() == 0 )
         {
             std::cout << "\n*****************************************************************";
-            std::cout << "\nEnding initialmodifyPatchBC:1";
+            std::cout << "\nENDING initialmodifyPatchBC in EssentialPatchBC.hpp";
             std::cout << "\n*****************************************************************\n";
         }
     
