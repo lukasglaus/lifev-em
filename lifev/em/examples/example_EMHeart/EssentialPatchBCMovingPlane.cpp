@@ -105,7 +105,7 @@ const bool EssentialPatchBCMovingPlane::nodeOnPatchCurrent(const Vector3D& coord
 
 void EssentialPatchBCMovingPlane::modifyPatchArea(EMSolver<RegionMesh<LinearTetra>, EMMonodomainSolver<RegionMesh<LinearTetra> > >& solver,const int& newFlag, const Real& time)
 {
-	if ( solver.comm()->MyPID() == 0 ) std::cout << "WE ARE IN MODIFY PATCH AREA " << std::endl;
+	if ( solver.comm()->MyPID() == 0 ) std::cout << "\nWE ARE IN MODIFY PATCH AREA " << std::endl;
 
 			auto p2FeSpace = solver.electroSolverPtr()->feSpacePtr();
 	    	auto p2dFeSpace = solver.structuralOperatorPtr()->dispFESpacePtr();
