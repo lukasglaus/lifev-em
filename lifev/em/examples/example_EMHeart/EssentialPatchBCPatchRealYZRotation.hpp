@@ -1049,7 +1049,8 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
                         semiAxisA[1] = 0.0;
                         semiAxisA[2] = 0.0;
 			
-
+            if ( 0 == comm->MyPID() )
+            {
 			std::cout << "This is larger Radius: " << pointFive[2] - pointSeven[2] << std::endl;
 			std::cout << "This is smaller Radius: " << pointSix[2] - pointEight[2] << std::endl;			
 
@@ -1061,7 +1062,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
 			std::cout << "This is point Six: " << pointSix[0] << "      " << pointSix[1] << "     " << pointSix[2] << std::endl;
 			std::cout << "This is point Seven: " << pointSeven[0] << "      " << pointSeven[1] << "     " << pointSeven[2] << std::endl;
 			std::cout << "This is point Eight: " << pointEight[0] << "      " << pointEight[1] << "     " << pointEight[2] << std::endl;
-
+            }
 			/*
 
 			pointOne[0] = m_xValueOneTwo;
