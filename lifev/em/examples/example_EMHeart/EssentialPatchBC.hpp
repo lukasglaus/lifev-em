@@ -654,7 +654,7 @@ public:
         
         Real maxdisplacement = patchpositioner(solver,dFeSpace, m_patchDirection, 0, time); //added by lg
         
-        Real currentPatchDisp = maxdisplacement + 1e-3;
+        Real currentPatchDisp = maxdisplacement;
         if ( 0 == solver.comm()->MyPID() ) std::cout << "\nEssentialPatchBC: " << m_Name << " displaced by " << currentPatchDisp << " cm";
         
         m_patchDispPtr = initialdirectionalVectorField(solver,dFeSpace, m_patchDirection, currentPatchDisp, time, maxdisplacement);

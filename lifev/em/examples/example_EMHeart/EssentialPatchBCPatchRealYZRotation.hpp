@@ -664,6 +664,9 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
                 maxdisplacementID = j;
             }
         }
+        
+        maxdisplacement = maxdisplacement * -1;
+        
         if ( solver.comm()->MyPID() == 0 )
             {
             std::cout << "\n*****************************************************************";
@@ -733,9 +736,9 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
             UInt jGID = p2PatchDisplacement->blockMap().GID (j + nCompLocalDof);
             UInt kGID = p2PatchDisplacement->blockMap().GID (j + 2 * nCompLocalDof);
             
-            (*p2PatchDisplacement)[iGID] = maxdisplacement*m_patchDirection[0]*-1; //0.0
-            (*p2PatchDisplacement)[jGID] = maxdisplacement*m_patchDirection[1]*-1;//0.0;
-            (*p2PatchDisplacement)[kGID] = maxdisplacement*m_patchDirection[2]*-1; //0.0
+            (*p2PatchDisplacement)[iGID] = maxdisplacement*m_patchDirection[0]; //0.0
+            (*p2PatchDisplacement)[jGID] = maxdisplacement*m_patchDirection[1];//0.0;
+            (*p2PatchDisplacement)[kGID] = maxdisplacement*m_patchDirection[2]; //0.0
         }
     
     
