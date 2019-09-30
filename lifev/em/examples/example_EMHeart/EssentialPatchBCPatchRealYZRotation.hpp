@@ -711,7 +711,7 @@ class EssentialPatchBCPatchRealYZRotation : public EssentialPatchBC
                     //displacement = 0.3;  //0.08 + m_dispAdder;
                     //std::cout << "This is value of displacement: " << displacement << std::endl;
                     //checkDisplacement(solver,coord, displacement, time);
-                displacement = displacement * -1
+                    displacement = displacement * -1;
                 }
                 
             }
