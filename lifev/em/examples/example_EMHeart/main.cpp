@@ -650,6 +650,13 @@ int main (int argc, char** argv)
         std::cout << "\n*****************************************************************\n";
     }
     
+    if ( 0 == comm->MyPID() )
+    {
+        std::cout << "\n*****************************************************************";
+        std::cout << "\nTIME = " << t;
+        std::cout << "\n*****************************************************************\n";
+    }
+    
     //patchHandler.test();
     patchHandler.initialmodifyPatchBC(solver, t);
     
@@ -660,7 +667,22 @@ int main (int argc, char** argv)
         std::cout << "\n*****************************************************************\n";
     }
     
-
+    if ( 0 == comm->MyPID() )
+    {
+        std::cout << "\n*****************************************************************";
+        std::cout << "\nTesting patch positioning";
+        std::cout << "\n*****************************************************************\n";
+    }
+    
+    //patchHandler.test();
+    patchHandler.initialmodifyPatchBC(solver, t);
+    
+    if ( 0 == comm->MyPID() )
+    {
+        std::cout << "\n*****************************************************************";
+        std::cout << "\nEnd of positioning test successfully positioned";
+        std::cout << "\n*****************************************************************\n";
+    }
 
     //============================================
     // Time loop
